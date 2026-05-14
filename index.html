@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Real 3D Heartbeat + Character</title>
+  <style>
+    html, body { margin: 0; height: 100%; background: #03040a; overflow: hidden; }
+    #app { width: 100%; height: 100%; }
+    .hud {
+      position: fixed; top: 14px; left: 50%; transform: translateX(-50%);
+      color: #fff; font: 600 14px/1.2 Inter, system-ui, sans-serif;
+      background: rgba(10, 14, 34, .5); border: 1px solid rgba(180, 220, 255, .3);
+      padding: 10px 14px; border-radius: 999px; letter-spacing: .4px; backdrop-filter: blur(8px);
+    }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+  <div class="hud" id="mode">Mode: Jumping · Expression: Happy</div>
+
+  <script type="module">
+    import * as THREE from 'https://unpkg.com/three@0.164.1/build/three.module.js';
+    import { OrbitControls } from 'https://unpkg.com/three@0.164.1/examples/jsm/controls/OrbitControls.js';
+
+    const app = document.getElementById('app');
+    const modeLabel = document.getElementById('mode');
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x050814);
+    scene.fog = new THREE.Fog(0x050814, 25, 80);
+
+    const camera = new THREE.PerspectiveCamera(50, innerWidth / innerHeight, 0.1, 200);
+    camera.position.set(0, 8, 22);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    renderer.setSize(innerWidth, innerHeight);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    app.appendChild(renderer.domElement);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.target.set(0, 6, 0);
+    controls.minDistance = 12;
+    controls.maxDistance = 34;
+
+    scene.add(new THREE.AmbientLight(0xffe6f5, 0.7));
+    const keyLight = new THREE.DirectionalLight(0xffffff, 1.5); keyLight.position.set(8, 15, 10); scene.add(keyLight);
+    const rim = new THREE.DirectionalLight(0x7bdfff, 1.0); rim.position.set(-10, 8, -15); scene.add(rim);
+    const pink = new THREE.PointLight(0xff3f8f, 2.5, 35); pink.position.set(0, 7, 2); scene.add(pink);
+
+    const floor = new THREE.Mesh(
+      new THREE.CircleGeometry(20, 128),
+      new THREE.MeshStandardMaterial({ color: 0x0c122a, metalness: 0.25, roughness: 0.65 })
+    );
+    floor.rotation.x = -Math.PI / 2;
+    floor.position.y = -0.01;
+    scene.add(floor);
+
+    // --- Real 3D heartbeat tube ------------------------------------------------
+    class ECGCurve extends THREE.Curve {
+      getPoint(t) {
+        const x = (t - 0.5) * 28;
+        let y = 0;
+        const p = ((t * 4) % 1);
+        if (p < 0.10) y = 0;
+        else if (p < 0.20) y = THREE.MathUtils.lerp(0, 0.25, (p - 0.10) / 0.10);
+        else if (p < 0.28) y = THREE.MathUtils.lerp(0.25, -0.35, (p - 0.20) / 0.08);
+        else if (p < 0.34) y = THREE.MathUtils.lerp(-0.35, 1.8, (p - 0.28) / 0.06);
+        else if (p < 0.40) y = THREE.MathUtils.lerp(1.8, -1.2, (p - 0.34) / 0.06);
+        else if (p < 0.52) y = THREE.MathUtils.lerp(-1.2, 0.1, (p - 0.40) / 0.12);
+        return new THREE.Vector3(x, y + 6.5, -5.5);
+      }
+    }
+
+    const ecgCurve = new ECGCurve();
+    const ecgGeo = new THREE.TubeGeometry(ecgCurve, 700, 0.08, 14, false);
+    const ecgMat = new THREE.MeshPhysicalMaterial({
+      color: 0xff4b9e,
+      emissive: 0xff4b9e,
+      emissiveIntensity: 1.7,
+      roughness: 0.15,
+      metalness: 0.1,
+      clearcoat: 1
+    });
+    const ecgLine = new THREE.Mesh(ecgGeo, ecgMat);
+    scene.add(ecgLine);
+
+    const heartShape = new THREE.Shape();
+    heartShape.moveTo(0, 1.8);
+    heartShape.bezierCurveTo(0, 3.4, -2.5, 3.4, -2.5, 1.4);
+    heartShape.bezierCurveTo(-2.5, -0.2, -1.2, -1.8, 0, -2.8);
+    heartShape.bezierCurveTo(1.2, -1.8, 2.5, -0.2, 2.5, 1.4);
+    heartShape.bezierCurveTo(2.5, 3.4, 0, 3.4, 0, 1.8);
+    const heartGeo = new THREE.ExtrudeGeometry(heartShape, { depth: 1.2, bevelEnabled: true, bevelSize: 0.2, bevelThickness: 0.25, bevelSegments: 6 });
+    heartGeo.center();
+    const heart = new THREE.Mesh(heartGeo, new THREE.MeshPhysicalMaterial({ color: 0xb1093f, emissive: 0x700022, emissiveIntensity: 0.8, roughness: 0.3, metalness: 0.15, clearcoat: 1 }));
+    heart.scale.set(0.85, 0.85, 0.85);
+    heart.position.set(0, 6.6, -5.3);
+    heart.rotation.x = Math.PI;
+    scene.add(heart);
+
+    // --- 3D female character (stylized but fully 3D meshes) ------------------
+    const girl = new THREE.Group();
+    girl.position.set(-10, 1.3, 0);
+    scene.add(girl);
+
+    const skin = new THREE.MeshStandardMaterial({ color: 0xf2c8b7, roughness: 0.62, metalness: 0.02 });
+    const hairMat = new THREE.MeshStandardMaterial({ color: 0x2d1d29, roughness: 0.88 });
+    const suit = new THREE.MeshStandardMaterial({ color: 0x7f7fff, roughness: 0.5, metalness: 0.08 });
+
+    const torso = new THREE.Mesh(new THREE.CapsuleGeometry(1, 2.3, 12, 20), suit); torso.position.y = 4.2; girl.add(torso);
+    const head = new THREE.Mesh(new THREE.SphereGeometry(0.92, 28, 24), skin); head.position.set(0, 6.4, 0); girl.add(head);
+    const hair = new THREE.Mesh(new THREE.SphereGeometry(1.0, 28, 24, 0, Math.PI*2, 0, Math.PI*0.72), hairMat); hair.position.set(0, 6.62, -0.05); girl.add(hair);
+
+    const eyeGeo = new THREE.SphereGeometry(0.09, 12, 10);
+    const eyeMat = new THREE.MeshStandardMaterial({ color: 0x1a1a24, roughness: 0.2 });
+    const eyeL = new THREE.Mesh(eyeGeo, eyeMat); eyeL.position.set(-0.26, 6.45, 0.84); girl.add(eyeL);
+    const eyeR = new THREE.Mesh(eyeGeo, eyeMat); eyeR.position.set(0.26, 6.45, 0.84); girl.add(eyeR);
+
+    const browGeo = new THREE.BoxGeometry(0.24, 0.05, 0.04);
+    const browMat = new THREE.MeshStandardMaterial({ color: 0x39253b });
+    const browL = new THREE.Mesh(browGeo, browMat); browL.position.set(-0.26, 6.73, 0.8); girl.add(browL);
+    const browR = new THREE.Mesh(browGeo, browMat); browR.position.set(0.26, 6.73, 0.8); girl.add(browR);
+
+    const mouth = new THREE.Mesh(new THREE.TorusGeometry(0.15, 0.028, 8, 32, Math.PI), new THREE.MeshStandardMaterial({ color: 0xb24f66 }));
+    mouth.position.set(0, 6.03, 0.82); mouth.rotation.z = Math.PI; girl.add(mouth);
+
+    function limb(radius = 0.2, length = 1.6, mat = skin) {
+      const g = new THREE.Group();
+      const m = new THREE.Mesh(new THREE.CapsuleGeometry(radius, length, 8, 14), mat);
+      m.position.y = -length * 0.45;
+      g.add(m);
+      return g;
+    }
+
+    const armL = limb(0.15, 1.5); armL.position.set(-1.05, 4.95, 0); girl.add(armL);
+    const armR = limb(0.15, 1.5); armR.position.set(1.05, 4.95, 0); girl.add(armR);
+    const legL = limb(0.2, 1.9); legL.position.set(-0.45, 2.7, 0.1); girl.add(legL);
+    const legR = limb(0.2, 1.9); legR.position.set(0.45, 2.7, 0.1); girl.add(legR);
+
+    const states = [
+      { n:'Jumping', a:0, b:0.2, speed:1.2, bounce:1.35, expr:'Happy' },
+      { n:'Walking', a:0.2, b:0.45, speed:1.6, bounce:0.35, expr:'Calm' },
+      { n:'Jogging', a:0.45, b:0.72, speed:2.7, bounce:0.6, expr:'Focused' },
+      { n:'Running', a:0.72, b:1.0, speed:4.2, bounce:0.9, expr:'Intense' },
+    ];
+
+    const clock = new THREE.Clock();
+    function animate() {
+      const t = clock.getElapsedTime();
+      const loop = (t % 12) / 12;
+      const st = states.find(s => loop >= s.a && loop < s.b) ?? states[0];
+
+      // movement across scene
+      const x = THREE.MathUtils.lerp(-10, 10, loop);
+      girl.position.x = x;
+      girl.position.z = Math.sin(loop * Math.PI * 2) * 1.5;
+
+      // locomotion
+      const phase = t * st.speed;
+      armL.rotation.x = Math.sin(phase) * 0.8;
+      armR.rotation.x = -Math.sin(phase) * 0.8;
+      legL.rotation.x = -Math.sin(phase) * 0.95;
+      legR.rotation.x = Math.sin(phase) * 0.95;
+      torso.position.y = 4.2 + Math.abs(Math.sin(phase * 1.1)) * st.bounce;
+      head.position.y = 6.4 + Math.abs(Math.sin(phase * 1.1)) * st.bounce * 0.62;
+
+      // facial expressions
+      if (st.expr === 'Happy') {
+        mouth.scale.set(1.05, 1.0, 1.0); browL.rotation.z = -0.18; browR.rotation.z = 0.18;
+      } else if (st.expr === 'Calm') {
+        mouth.scale.set(0.85, 0.65, 1.0); browL.rotation.z = 0.0; browR.rotation.z = 0.0;
+      } else if (st.expr === 'Focused') {
+        mouth.scale.set(0.72, 0.4, 1.0); browL.rotation.z = 0.16; browR.rotation.z = -0.16;
+      } else {
+        mouth.scale.set(0.5, 0.95, 1.0); browL.rotation.z = 0.3; browR.rotation.z = -0.3;
+      }
+
+      // heartbeat realism: pulsation + traveling glow
+      const bpm = 78 + Math.sin(t * 0.5) * 6;
+      const beat = Math.sin(t * (bpm / 60) * Math.PI * 2);
+      const pulse = Math.max(0, beat);
+      heart.scale.setScalar(0.85 + pulse * 0.18);
+      heart.material.emissiveIntensity = 0.7 + pulse * 1.2;
+      ecgMat.emissiveIntensity = 1.1 + pulse * 1.6;
+
+      pink.intensity = 2.1 + pulse * 2.4;
+      pink.position.x = Math.sin(t * 1.8) * 3.4;
+
+      modeLabel.textContent = `Mode: ${st.n} · Expression: ${st.expr}`;
+
+      controls.update();
+      renderer.render(scene, camera);
+      requestAnimationFrame(animate);
+    }
+    animate();
+
+    addEventListener('resize', () => {
+      camera.aspect = innerWidth / innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(innerWidth, innerHeight);
+    });
+  </script>
+</body>
+</html>
