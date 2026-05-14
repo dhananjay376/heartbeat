@@ -3,299 +3,205 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Heartbeat 3D Character Animation</title>
+  <title>Real 3D Heartbeat + Character</title>
   <style>
-    :root {
-      --bg1: #090b1a;
-      --bg2: #1f2242;
-      --pink: #ff4d8d;
-      --aqua: #7bf8ff;
-      --skin: #f7c7b4;
-      --hair: #2f1e2f;
-      --dress: #8f7dff;
-      --white: #ffffff;
-      --shadow: rgba(0,0,0,.35);
-    }
-
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      min-height: 100vh;
-      display: grid;
-      place-items: center;
-      overflow: hidden;
-      font-family: Inter, system-ui, sans-serif;
-      background: radial-gradient(circle at 20% 10%, #243065 0%, var(--bg1) 35%), linear-gradient(160deg, var(--bg2), var(--bg1));
-      color: var(--white);
-    }
-
-    .scene {
-      position: relative;
-      width: min(95vw, 980px);
-      height: min(86vh, 620px);
-      border-radius: 24px;
-      overflow: hidden;
-      background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.01));
-      box-shadow: 0 20px 80px rgba(0,0,0,.45), inset 0 0 0 1px rgba(255,255,255,.08);
-      perspective: 1000px;
-    }
-
-    .heartbeat {
-      position: absolute;
-      left: -5%; right: -5%;
-      top: 50%;
-      height: 170px;
-      transform: translateY(-50%);
-      filter: drop-shadow(0 0 12px rgba(255,77,141,.8));
-      opacity: .9;
-    }
-
-    .heartbeat path {
-      stroke: var(--pink);
-      stroke-width: 5;
-      fill: none;
-      stroke-linejoin: round;
-      stroke-linecap: round;
-      stroke-dasharray: 1700;
-      stroke-dashoffset: 1700;
-      animation: drawLine 5.2s linear infinite;
-    }
-
-    @keyframes drawLine {
-      0% { stroke-dashoffset: 1700; }
-      55% { stroke-dashoffset: 0; }
-      100% { stroke-dashoffset: -1700; }
-    }
-
-    .character-wrap {
-      position: absolute;
-      left: 50%;
-      top: 56%;
-      width: 230px;
-      height: 390px;
-      transform-style: preserve-3d;
-      animation: moveCycle 12s ease-in-out infinite;
-    }
-
-    @keyframes moveCycle {
-      0%, 14%   { transform: translate3d(-310px,-30px,60px) scale(0.95); }
-      15%, 34%  { transform: translate3d(-120px,0,0) scale(1.00); }
-      35%, 56%  { transform: translate3d(45px,-8px,30px) scale(1.06); }
-      57%, 78%  { transform: translate3d(210px,-12px,90px) scale(1.15); }
-      79%, 100% { transform: translate3d(-310px,-30px,60px) scale(0.95); }
-    }
-
-    .character {
-      position: absolute;
-      left: 50%; top: 50%;
-      width: 150px;
-      height: 320px;
-      transform-style: preserve-3d;
-      transform: translate(-50%, -50%) rotateY(-12deg);
-      animation: modePose 12s linear infinite;
-    }
-
-    @keyframes modePose {
-      0%, 14%   { transform: translate(-50%, -50%) rotateY(-25deg) rotateX(5deg); }
-      15%, 34%  { transform: translate(-50%, -50%) rotateY(-10deg) rotateX(0); }
-      35%, 56%  { transform: translate(-50%, -50%) rotateY(0deg) rotateX(-2deg); }
-      57%, 78%  { transform: translate(-50%, -50%) rotateY(12deg) rotateX(-6deg); }
-      79%, 100% { transform: translate(-50%, -50%) rotateY(-25deg) rotateX(5deg); }
-    }
-
-    .head {
-      position: absolute;
-      left: 50%; top: 20px;
-      width: 86px; height: 94px;
-      transform: translateX(-50%);
-      background: var(--skin);
-      border-radius: 45% 45% 48% 48%;
-      box-shadow: inset 0 -8px 0 rgba(0,0,0,.06);
-    }
-
-    .hair {
-      position: absolute;
-      inset: -10px -6px 28px;
-      background: var(--hair);
-      border-radius: 50% 50% 42% 42%;
-      z-index: -1;
-    }
-
-    .eye { position:absolute; top:42px; width:16px; height:10px; border-radius:50%; background:#2f2f2f; }
-    .eye.left { left:20px; }
-    .eye.right{ right:20px; }
-
-    .brow { position:absolute; top:30px; width:20px; height:3px; background:#4a3248; border-radius:2px; }
-    .brow.left { left:17px; transform: rotate(8deg); }
-    .brow.right{ right:17px; transform: rotate(-8deg); }
-
-    .mouth {
-      position:absolute;
-      left:50%; bottom:20px;
-      width:22px; height:10px;
-      transform:translateX(-50%);
-      border:3px solid #cc5c6f;
-      border-top:0;
-      border-left-color: transparent;
-      border-right-color: transparent;
-      border-bottom-left-radius: 20px;
-      border-bottom-right-radius: 20px;
-      animation: faceCycle 12s steps(1) infinite;
-    }
-
-    @keyframes faceCycle {
-      0%, 20%   { width: 20px; height: 8px; border-width: 2px; }
-      21%, 45%  { width: 18px; height: 5px; border-radius: 0 0 14px 14px; }
-      46%, 70%  { width: 24px; height: 12px; border-width: 3px; }
-      71%, 100% { width: 14px; height: 14px; border: 3px solid #cc5c6f; border-radius: 50%; border-left-color:#cc5c6f; border-top-color:#cc5c6f; }
-    }
-
-    .body {
-      position: absolute;
-      left: 50%; top: 98px;
-      width: 88px; height: 118px;
-      transform: translateX(-50%);
-      background: linear-gradient(180deg, #ab9bff, #7f6df8);
-      border-radius: 42px 42px 22px 22px;
-      box-shadow: inset 0 -10px 0 rgba(0,0,0,.1);
-      animation: bounce 1s ease-in-out infinite;
-    }
-
-    .arm, .leg {
-      position: absolute;
-      background: var(--skin);
-      transform-origin: top center;
-      box-shadow: inset 0 -6px 0 rgba(0,0,0,.08);
-    }
-
-    .arm {
-      top: 112px;
-      width: 16px; height: 86px;
-      border-radius: 18px;
-      animation: armMove 1s ease-in-out infinite;
-    }
-    .arm.left  { left: 38px; }
-    .arm.right { right: 38px; animation-delay: -.5s; }
-
-    .leg {
-      top: 202px;
-      width: 20px; height: 108px;
-      border-radius: 16px;
-      animation: legMove 1s ease-in-out infinite;
-    }
-    .leg.left  { left: 57px; }
-    .leg.right { right: 57px; animation-delay: -.5s; }
-
-    .shoe {
-      position: absolute;
-      width: 34px; height: 14px;
-      background: var(--white);
-      border-radius: 12px;
-      bottom: -6px; left: -7px;
-      box-shadow: 0 3px 0 rgba(0,0,0,.18);
-    }
-
-    .shadow {
-      position: absolute;
-      left: 50%;
-      bottom: 38px;
-      width: 110px; height: 22px;
-      transform: translateX(-50%);
-      background: radial-gradient(ellipse at center, rgba(0,0,0,.35), rgba(0,0,0,0));
-      animation: shadowPulse 1s ease-in-out infinite;
-    }
-
-    @keyframes bounce {
-      0%, 100% { transform: translateX(-50%) translateY(0); }
-      50% { transform: translateX(-50%) translateY(-18px); }
-    }
-
-    @keyframes armMove {
-      0%,100%{ transform: rotate(34deg); }
-      50%{ transform: rotate(-36deg); }
-    }
-    @keyframes legMove {
-      0%,100%{ transform: rotate(-34deg); }
-      50%{ transform: rotate(30deg); }
-    }
-    @keyframes shadowPulse {
-      0%,100%{ transform: translateX(-50%) scale(1); opacity:.36; }
-      50%{ transform: translateX(-50%) scale(.72); opacity:.2; }
-    }
-
-    .label {
-      position: absolute;
-      top: 14px;
-      left: 50%;
-      transform: translateX(-50%);
-      padding: 8px 14px;
-      border-radius: 999px;
-      background: rgba(255,255,255,.1);
-      backdrop-filter: blur(8px);
-      font-weight: 600;
-      letter-spacing: .3px;
-      box-shadow: inset 0 0 0 1px rgba(255,255,255,.14);
-      animation: labelCycle 12s steps(1) infinite;
-    }
-
-    @keyframes labelCycle {
-      0%,14%   { content: 'Jumping'; }
-      15%,34%  { content: 'Walking'; }
-      35%,56%  { content: 'Jogging'; }
-      57%,78%  { content: 'Running'; }
-      79%,100% { content: 'Jumping'; }
+    html, body { margin: 0; height: 100%; background: #03040a; overflow: hidden; }
+    #app { width: 100%; height: 100%; }
+    .hud {
+      position: fixed; top: 14px; left: 50%; transform: translateX(-50%);
+      color: #fff; font: 600 14px/1.2 Inter, system-ui, sans-serif;
+      background: rgba(10, 14, 34, .5); border: 1px solid rgba(180, 220, 255, .3);
+      padding: 10px 14px; border-radius: 999px; letter-spacing: .4px; backdrop-filter: blur(8px);
     }
   </style>
 </head>
 <body>
-  <div class="scene">
-    <div class="label" id="modeText">Jumping</div>
-    <svg class="heartbeat" viewBox="0 0 1600 200" preserveAspectRatio="none" aria-hidden="true">
-      <path d="M0 100 L170 100 L220 95 L260 130 L320 40 L380 165 L470 100 L620 100 L670 95 L710 130 L770 40 L830 165 L920 100 L1080 100 L1130 95 L1170 130 L1230 40 L1290 165 L1390 100 L1600 100" />
-    </svg>
+  <div id="app"></div>
+  <div class="hud" id="mode">Mode: Jumping · Expression: Happy</div>
 
-    <div class="character-wrap">
-      <div class="shadow"></div>
-      <div class="character">
-        <div class="head">
-          <div class="hair"></div>
-          <div class="brow left"></div>
-          <div class="brow right"></div>
-          <div class="eye left"></div>
-          <div class="eye right"></div>
-          <div class="mouth"></div>
-        </div>
-        <div class="body"></div>
-        <div class="arm left"></div>
-        <div class="arm right"></div>
-        <div class="leg left"><div class="shoe"></div></div>
-        <div class="leg right"><div class="shoe"></div></div>
-      </div>
-    </div>
-  </div>
+  <script type="module">
+    import * as THREE from 'https://unpkg.com/three@0.164.1/build/three.module.js';
+    import { OrbitControls } from 'https://unpkg.com/three@0.164.1/examples/jsm/controls/OrbitControls.js';
 
-  <script>
-    const modeText = document.getElementById('modeText');
-    const states = [
-      { name: 'Jumping', start: 0, end: 14 },
-      { name: 'Walking', start: 15, end: 34 },
-      { name: 'Jogging', start: 35, end: 56 },
-      { name: 'Running', start: 57, end: 78 },
-      { name: 'Jumping', start: 79, end: 100 }
-    ];
+    const app = document.getElementById('app');
+    const modeLabel = document.getElementById('mode');
 
-    const duration = 12000;
-    const startTime = performance.now();
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x050814);
+    scene.fog = new THREE.Fog(0x050814, 25, 80);
 
-    function tick(now) {
-      const elapsed = (now - startTime) % duration;
-      const pct = (elapsed / duration) * 100;
-      const current = states.find(s => pct >= s.start && pct <= s.end) || states[0];
-      modeText.textContent = `${current.name} · Expressive face`;
-      requestAnimationFrame(tick);
+    const camera = new THREE.PerspectiveCamera(50, innerWidth / innerHeight, 0.1, 200);
+    camera.position.set(0, 8, 22);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    renderer.setSize(innerWidth, innerHeight);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    app.appendChild(renderer.domElement);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.target.set(0, 6, 0);
+    controls.minDistance = 12;
+    controls.maxDistance = 34;
+
+    scene.add(new THREE.AmbientLight(0xffe6f5, 0.7));
+    const keyLight = new THREE.DirectionalLight(0xffffff, 1.5); keyLight.position.set(8, 15, 10); scene.add(keyLight);
+    const rim = new THREE.DirectionalLight(0x7bdfff, 1.0); rim.position.set(-10, 8, -15); scene.add(rim);
+    const pink = new THREE.PointLight(0xff3f8f, 2.5, 35); pink.position.set(0, 7, 2); scene.add(pink);
+
+    const floor = new THREE.Mesh(
+      new THREE.CircleGeometry(20, 128),
+      new THREE.MeshStandardMaterial({ color: 0x0c122a, metalness: 0.25, roughness: 0.65 })
+    );
+    floor.rotation.x = -Math.PI / 2;
+    floor.position.y = -0.01;
+    scene.add(floor);
+
+    // --- Real 3D heartbeat tube ------------------------------------------------
+    class ECGCurve extends THREE.Curve {
+      getPoint(t) {
+        const x = (t - 0.5) * 28;
+        let y = 0;
+        const p = ((t * 4) % 1);
+        if (p < 0.10) y = 0;
+        else if (p < 0.20) y = THREE.MathUtils.lerp(0, 0.25, (p - 0.10) / 0.10);
+        else if (p < 0.28) y = THREE.MathUtils.lerp(0.25, -0.35, (p - 0.20) / 0.08);
+        else if (p < 0.34) y = THREE.MathUtils.lerp(-0.35, 1.8, (p - 0.28) / 0.06);
+        else if (p < 0.40) y = THREE.MathUtils.lerp(1.8, -1.2, (p - 0.34) / 0.06);
+        else if (p < 0.52) y = THREE.MathUtils.lerp(-1.2, 0.1, (p - 0.40) / 0.12);
+        return new THREE.Vector3(x, y + 6.5, -5.5);
+      }
     }
 
-    requestAnimationFrame(tick);
+    const ecgCurve = new ECGCurve();
+    const ecgGeo = new THREE.TubeGeometry(ecgCurve, 700, 0.08, 14, false);
+    const ecgMat = new THREE.MeshPhysicalMaterial({
+      color: 0xff4b9e,
+      emissive: 0xff4b9e,
+      emissiveIntensity: 1.7,
+      roughness: 0.15,
+      metalness: 0.1,
+      clearcoat: 1
+    });
+    const ecgLine = new THREE.Mesh(ecgGeo, ecgMat);
+    scene.add(ecgLine);
+
+    const heartShape = new THREE.Shape();
+    heartShape.moveTo(0, 1.8);
+    heartShape.bezierCurveTo(0, 3.4, -2.5, 3.4, -2.5, 1.4);
+    heartShape.bezierCurveTo(-2.5, -0.2, -1.2, -1.8, 0, -2.8);
+    heartShape.bezierCurveTo(1.2, -1.8, 2.5, -0.2, 2.5, 1.4);
+    heartShape.bezierCurveTo(2.5, 3.4, 0, 3.4, 0, 1.8);
+    const heartGeo = new THREE.ExtrudeGeometry(heartShape, { depth: 1.2, bevelEnabled: true, bevelSize: 0.2, bevelThickness: 0.25, bevelSegments: 6 });
+    heartGeo.center();
+    const heart = new THREE.Mesh(heartGeo, new THREE.MeshPhysicalMaterial({ color: 0xb1093f, emissive: 0x700022, emissiveIntensity: 0.8, roughness: 0.3, metalness: 0.15, clearcoat: 1 }));
+    heart.scale.set(0.85, 0.85, 0.85);
+    heart.position.set(0, 6.6, -5.3);
+    heart.rotation.x = Math.PI;
+    scene.add(heart);
+
+    // --- 3D female character (stylized but fully 3D meshes) ------------------
+    const girl = new THREE.Group();
+    girl.position.set(-10, 1.3, 0);
+    scene.add(girl);
+
+    const skin = new THREE.MeshStandardMaterial({ color: 0xf2c8b7, roughness: 0.62, metalness: 0.02 });
+    const hairMat = new THREE.MeshStandardMaterial({ color: 0x2d1d29, roughness: 0.88 });
+    const suit = new THREE.MeshStandardMaterial({ color: 0x7f7fff, roughness: 0.5, metalness: 0.08 });
+
+    const torso = new THREE.Mesh(new THREE.CapsuleGeometry(1, 2.3, 12, 20), suit); torso.position.y = 4.2; girl.add(torso);
+    const head = new THREE.Mesh(new THREE.SphereGeometry(0.92, 28, 24), skin); head.position.set(0, 6.4, 0); girl.add(head);
+    const hair = new THREE.Mesh(new THREE.SphereGeometry(1.0, 28, 24, 0, Math.PI*2, 0, Math.PI*0.72), hairMat); hair.position.set(0, 6.62, -0.05); girl.add(hair);
+
+    const eyeGeo = new THREE.SphereGeometry(0.09, 12, 10);
+    const eyeMat = new THREE.MeshStandardMaterial({ color: 0x1a1a24, roughness: 0.2 });
+    const eyeL = new THREE.Mesh(eyeGeo, eyeMat); eyeL.position.set(-0.26, 6.45, 0.84); girl.add(eyeL);
+    const eyeR = new THREE.Mesh(eyeGeo, eyeMat); eyeR.position.set(0.26, 6.45, 0.84); girl.add(eyeR);
+
+    const browGeo = new THREE.BoxGeometry(0.24, 0.05, 0.04);
+    const browMat = new THREE.MeshStandardMaterial({ color: 0x39253b });
+    const browL = new THREE.Mesh(browGeo, browMat); browL.position.set(-0.26, 6.73, 0.8); girl.add(browL);
+    const browR = new THREE.Mesh(browGeo, browMat); browR.position.set(0.26, 6.73, 0.8); girl.add(browR);
+
+    const mouth = new THREE.Mesh(new THREE.TorusGeometry(0.15, 0.028, 8, 32, Math.PI), new THREE.MeshStandardMaterial({ color: 0xb24f66 }));
+    mouth.position.set(0, 6.03, 0.82); mouth.rotation.z = Math.PI; girl.add(mouth);
+
+    function limb(radius = 0.2, length = 1.6, mat = skin) {
+      const g = new THREE.Group();
+      const m = new THREE.Mesh(new THREE.CapsuleGeometry(radius, length, 8, 14), mat);
+      m.position.y = -length * 0.45;
+      g.add(m);
+      return g;
+    }
+
+    const armL = limb(0.15, 1.5); armL.position.set(-1.05, 4.95, 0); girl.add(armL);
+    const armR = limb(0.15, 1.5); armR.position.set(1.05, 4.95, 0); girl.add(armR);
+    const legL = limb(0.2, 1.9); legL.position.set(-0.45, 2.7, 0.1); girl.add(legL);
+    const legR = limb(0.2, 1.9); legR.position.set(0.45, 2.7, 0.1); girl.add(legR);
+
+    const states = [
+      { n:'Jumping', a:0, b:0.2, speed:1.2, bounce:1.35, expr:'Happy' },
+      { n:'Walking', a:0.2, b:0.45, speed:1.6, bounce:0.35, expr:'Calm' },
+      { n:'Jogging', a:0.45, b:0.72, speed:2.7, bounce:0.6, expr:'Focused' },
+      { n:'Running', a:0.72, b:1.0, speed:4.2, bounce:0.9, expr:'Intense' },
+    ];
+
+    const clock = new THREE.Clock();
+    function animate() {
+      const t = clock.getElapsedTime();
+      const loop = (t % 12) / 12;
+      const st = states.find(s => loop >= s.a && loop < s.b) ?? states[0];
+
+      // movement across scene
+      const x = THREE.MathUtils.lerp(-10, 10, loop);
+      girl.position.x = x;
+      girl.position.z = Math.sin(loop * Math.PI * 2) * 1.5;
+
+      // locomotion
+      const phase = t * st.speed;
+      armL.rotation.x = Math.sin(phase) * 0.8;
+      armR.rotation.x = -Math.sin(phase) * 0.8;
+      legL.rotation.x = -Math.sin(phase) * 0.95;
+      legR.rotation.x = Math.sin(phase) * 0.95;
+      torso.position.y = 4.2 + Math.abs(Math.sin(phase * 1.1)) * st.bounce;
+      head.position.y = 6.4 + Math.abs(Math.sin(phase * 1.1)) * st.bounce * 0.62;
+
+      // facial expressions
+      if (st.expr === 'Happy') {
+        mouth.scale.set(1.05, 1.0, 1.0); browL.rotation.z = -0.18; browR.rotation.z = 0.18;
+      } else if (st.expr === 'Calm') {
+        mouth.scale.set(0.85, 0.65, 1.0); browL.rotation.z = 0.0; browR.rotation.z = 0.0;
+      } else if (st.expr === 'Focused') {
+        mouth.scale.set(0.72, 0.4, 1.0); browL.rotation.z = 0.16; browR.rotation.z = -0.16;
+      } else {
+        mouth.scale.set(0.5, 0.95, 1.0); browL.rotation.z = 0.3; browR.rotation.z = -0.3;
+      }
+
+      // heartbeat realism: pulsation + traveling glow
+      const bpm = 78 + Math.sin(t * 0.5) * 6;
+      const beat = Math.sin(t * (bpm / 60) * Math.PI * 2);
+      const pulse = Math.max(0, beat);
+      heart.scale.setScalar(0.85 + pulse * 0.18);
+      heart.material.emissiveIntensity = 0.7 + pulse * 1.2;
+      ecgMat.emissiveIntensity = 1.1 + pulse * 1.6;
+
+      pink.intensity = 2.1 + pulse * 2.4;
+      pink.position.x = Math.sin(t * 1.8) * 3.4;
+
+      modeLabel.textContent = `Mode: ${st.n} · Expression: ${st.expr}`;
+
+      controls.update();
+      renderer.render(scene, camera);
+      requestAnimationFrame(animate);
+    }
+    animate();
+
+    addEventListener('resize', () => {
+      camera.aspect = innerWidth / innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(innerWidth, innerHeight);
+    });
   </script>
 </body>
 </html>
